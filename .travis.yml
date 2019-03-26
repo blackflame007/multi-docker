@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t blackflame007/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run blackflame007/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t blackflame007/multi-client ./client
+  - docker build -t blackflame007/multi-nginx ./nginx
+  - docker build -t blackflame007/multi-server ./server
+  - docker build -t blackflame007/multi-worker ./worker
+  # login to docker cli
+  - echo "DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # takes these images and push to docker hub
+  - docker push blackflame007/multi-client
+  - docker push blackflame007/multi-nginx
+  - docker push blackflame007/multi-server
+  - docker push blackflame007/multi-worker
